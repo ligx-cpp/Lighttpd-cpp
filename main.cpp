@@ -12,9 +12,8 @@ int main()
     if(sock<0){
            return -1;
     }
-    ThreadPool th_pool(4);
-    ev_handler ev_hdr;
-    if(ev_hdr.start_ev(sock)==false){
+    ev_handler ev_hdr(4,sock);//输入要创建的线程树和绑定的套接字
+    if(ev_hdr.start_ev()==false){
            return -1;
     }
     
