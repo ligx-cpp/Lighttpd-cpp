@@ -12,15 +12,6 @@ ThreadPool::ThreadPool(int threads,int sock)
 }
 
 void ThreadPool::crt_thread() {
-                w_base=event_base_new();//初始化base
-                //这里要加入读写事件通过回调函数
-                w_event=event_new(w_base,sock,EV_READ|EV_PERSIST,,);//创建通用事件处理器
-                event_add(w_event,NULL);
-                w_exit_event=evsignal_new(w_base,SIGINT,Thread_Pool::thread_exit,w_base);//创建信号事件处理器
-                evsignal_add(w_exit_event,NULL);
-                event_base_dispatch(w_base);
-
-
 		for (;;)
 		{
 			int task=0;
@@ -35,7 +26,19 @@ void ThreadPool::crt_thread() {
 				this->tasks.pop();
 			}
 
-			//执行task;
+			//初始化base
+                        w_base=event_base_new();
+                        //这里要加入读写事件通过回调函数
+                        event_set(w_event,new_fd,EV_READ|EV_PERSIST,读写函数,w_event);//事件初始化
+                        event_base_set(w_base,w_event);//如果有多个event_base，则才需要这步；就一个event_base时，是不需要这步的，因为此时current_base就等于event_base。
+                        event_add(w_event,NULL);
+
+                        //创建信号事件处理器
+                        w_exit_event=evsignal_new(w_base,SIGINT,Thread_Pool::thread_exit,w_base);
+                        evsignal_add(w_exit_event,NULL);
+
+                        //循环
+                        event_base_dispatch(w_base); 
 		}
                 return ;
 }

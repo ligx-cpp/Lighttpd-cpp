@@ -9,8 +9,8 @@ ev_handler::ev_handler(int threads,int sock):sock(sock){
 }
 
 void ev_handler::event_handler(int sock,short event,void* arg){
-        int addrlen=sizeof(remote_addr);//用来存放连接上来的客户端地址
-        int new_fd = accept(sock,  (struct sockaddr*) &remote_addr, (socklen_t*)&addrlen);//如果线程池已用完，怎么办呢?
+        int addrlen=sizeof(temp_addr);//用来存放连接上来的客户端地址
+        int new_fd = accept(sock,(struct sockaddr*) &temp_addr,(socklen_t*)&addrlen);//如果线程池已用完，怎么办呢?
         if(new_fd < 0){//连接客户端所返回的套接字
              std::cout<<"Accept error in on_accept()"<<std::endl;
              return;

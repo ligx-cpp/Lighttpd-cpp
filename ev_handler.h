@@ -22,6 +22,6 @@ private:
         struct event* m_exit_event;
 	struct event* m_event;
         struct event* listen_ev;
-        struct sockaddr_in remote_addr;
+        struct sockaddr_in temp_addr;
 };
 #endif
