@@ -1,15 +1,14 @@
 #include<network.h>
 
-netaddr::netaddr():connect(0){
-	net_event=NULL;
-        memset(&net_addr,0,sizeof(net_addr));
+netaddr::netaddr(){
+        bzero(&net_addr,sizeof(net_addr));
 }
-int  netaddr::net_init(const string &ip,const int port){
+int  netaddr::net_init(string &ip,int port){
         net_addr.sin_family=AF_INET;
 	net_addr.sin_port=htons(port);
-	net_addr.sin_addr.s_addr(ip.c_str());
+	net_addr.sin_addr.s_addr=inet_addr(ip.c_str());
 
-	sock=socket(AF_INET,SOCK_STREAM,0);
+	int sock=socket(AF_INET,SOCK_STREAM,0);
 	if(sock==-1){
 		return -1;
 	}
@@ -33,7 +32,4 @@ int  netaddr::net_init(const string &ip,const int port){
 }
 
 netaddr::~netaddr(){
-	if(net_event){
-		close(sock);
-	}
 }

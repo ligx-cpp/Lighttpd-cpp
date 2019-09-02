@@ -1,11 +1,11 @@
 #include <iostream>
 #include<string>
-
+#include<network.h>
 #include "ev_handler.h"
 
 int main()
 {
-    string ip="192.168.9.1";
+    std::string ip="192.168.9.1";
     int port=4000;
     netaddr n_addr;
     int sock=n_addr.net_init(ip,port);

@@ -5,7 +5,6 @@ ThreadPool::ThreadPool(int threads)
 	: stop(false)
 {
         w_exit_event=NULL;
-        r_event=NULL;
 	for (size_t i = 0; i < threads; ++i)
 		workers.emplace_back(std::thread(std::mem_fn(&ThreadPool::crt_thread),this)); //当需要利用类成员函数(ThreadPool::crt_thread)来创建子线程时，需如下码码：thread(std::mem_fn(&ThreadPool::crt_thread), Object, args..); 这个相当于STL中内置的仿函数，可以使用调取STL容器内对象的内置函数；mem_fn函数的用法是把成员函数转为函数对象，使用对象指针或对象(引用)进行绑定
 }
@@ -31,15 +30,15 @@ void ThreadPool::crt_thread() {
 			evutil_make_socket_nonblocking(new_fd);
 
                         //这里要加入读事件通过回调函数
-                        rw_ev.r_event=event_new(w_base,new_fd,EV_READ|EV_PERSIST,rwhand::to_read,w_base);
+                        rw_ev.con_event=event_new(w_base,new_fd,EV_READ|EV_PERSIST,rwhand::rw_event,w_base);
 
                         //event_set(r_event,new_fd,EV_READ|EV_PERSIST,rwhand::to_read,w_event);//事件初始化
                         //event_base_set(w_base,r_event);//如果有多个event_base，则才需要这步；就一个event_base时，是不需要这步的，因为此时current_base就等于event_base。
 
-                        event_add(rw_ev.r_event,NULL);
+                        event_add(rw_ev.con_event,NULL);
 
                         //创建信号事件处理器
-                        w_exit_event=evsignal_new(w_base,SIGINT,Thread_Pool::thread_exit,w_base);
+                        w_exit_event=evsignal_new(w_base,SIGINT,ThreadPool::thread_exit,w_base);
                         evsignal_add(w_exit_event,NULL);
 
                         //循环
@@ -61,7 +60,6 @@ void ThreadPool::enqueue(int new_fd)
  
         tasks.push(new_fd);//把任务压入队列
     }
-}
     condition.notify_one();//notify是通知一个线程获取锁，notifyAll是通知所有相关的线程去竞争锁;notify_one()(随机唤醒一个等待的线程)和notify_all()(唤醒所有等待的线程)//因为任务队列里有了任务,所以
     return ;
 }
@@ -70,7 +68,7 @@ void ThreadPool::thread_exit(evutil_socket_t sig,short event,void* arg){
                 event_base_loopexit((struct event_base*)arg,NULL);
                 return ;
 
-
+}
  
  
 ThreadPool::~ThreadPool()

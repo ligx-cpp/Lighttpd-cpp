@@ -6,12 +6,14 @@
 #include <memory>
 #include <thread>
 #include <mutex>
+#include <signal.h>
 #include <condition_variable>
 #include <future>
 #include <functional>
 #include <stdexcept>
 #include <event.h>
-
+#include <event2/util.h>
+#include <rw_handler.h>
 class ThreadPool {
 public:
     ThreadPool(int threads);
