@@ -1,8 +1,8 @@
 CC=g++
-CC_FLAG= -std=c++11 -g -Wall
+CC_FLAG= -std=c++11 -g -Wall 
 INCLUDE=-Iinclude
-LIB=-pthread
-LDFLAGS=-levent
+LIB= -pthread
+LDFLAGS=-levent #Makefile中$(LDFLAGS)“在链接时”要放在$@的后面，不然不会起作用
 
 
 
@@ -11,7 +11,7 @@ OBJS=$(patsubst %.cpp,%.o,$(SRCS))
 
 target=main
 $(target):$(OBJS)
-	$(CC) $(LIB) $(LDFLAGS) $^ -o $@
+	$(CC) $(LIB) $^ -o $@ $(LDFLAGS)  
 %.o:%.cpp
 	$(CC) -c $^ $(INCLUDE) $(CC_FLAG)  -o $@
 .PRONY:clean

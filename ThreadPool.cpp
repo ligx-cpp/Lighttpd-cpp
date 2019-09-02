@@ -1,7 +1,7 @@
 #include<ThreadPool.h>
 
 
-ThreadPool::ThreadPool(int threads)
+ThreadPool::ThreadPool(size_t threads)
 	: stop(false)
 {
         w_exit_event=NULL;

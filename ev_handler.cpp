@@ -31,16 +31,16 @@ bool ev_handler::start_ev(){
         //event_set(m_event,sock,EV_READ|EV_PERSIST,ev_handler::event_handler,this);//初始化listen_ev事件
         //event_base_set(m_base, listen_ev);//event_base_set()函数是作为event_set()的补充，该函数重新设置ev绑定的eventbase与ev的优先级如果是通过event_base_new()创建的base，需要先调用event_set()函数先初始化event，再调用event_base_new()重新设置ev绑定的新的base
         event_add(m_event,NULL);//这里没有创建通用事件处理器？？？？
-        m_exit_event=evsignal_new(m_base,SIGINT,ev_handler::ev_exit,m_base);//中断信号
-        evsignal_add(m_exit_event,NULL);
+        //m_exit_event=evsignal_new(m_base,SIGINT,ev_handler::ev_exit,m_base);//中断信号
+        //evsignal_add(m_exit_event,NULL);
 	event_base_dispatch(m_base);
 	return true;
 }
 
-void ev_exit(evutil_socket_t sig,short event,void* arg){
+/*void ev_exit(evutil_socket_t sig,short event,void* arg){
         event_base_loopexit((struct event_base*)arg,NULL);
         return ;
-}
+}*/
 
 ev_handler::~ev_handler(){
         delete th_pool;

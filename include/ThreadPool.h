@@ -16,7 +16,7 @@
 #include <rw_handler.h>
 class ThreadPool {
 public:
-    ThreadPool(int threads);
+    ThreadPool(size_t threads);
     void crt_thread();//创建套接字产生的sock
     void enqueue(int new_fd);//accept的返回的新的new_fd
     static void thread_exit(evutil_socket_t sig,short event,void* arg);
