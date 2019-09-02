@@ -4,15 +4,16 @@
 ThreadPool::ThreadPool(size_t threads)
 	: stop(false)
 {
-        w_exit_event=NULL;
+        //w_exit_event=NULL;
 	for (size_t i = 0; i < threads; ++i)
 		workers.emplace_back(std::thread(std::mem_fn(&ThreadPool::crt_thread),this)); //当需要利用类成员函数(ThreadPool::crt_thread)来创建子线程时，需如下码码：thread(std::mem_fn(&ThreadPool::crt_thread), Object, args..); 这个相当于STL中内置的仿函数，可以使用调取STL容器内对象的内置函数；mem_fn函数的用法是把成员函数转为函数对象，使用对象指针或对象(引用)进行绑定
 }
 
 void ThreadPool::crt_thread() {
                 //初始化base
-                struct event_base* w_base=event_base_new();
                 rwhand rw_ev;
+                struct event_base* w_base=event_base_new();
+                rw_ev.w_base=w_base;   
 		for (;;)
 		{
 			int new_fd=0;
@@ -28,21 +29,22 @@ void ThreadPool::crt_thread() {
 			}
 
 			evutil_make_socket_nonblocking(new_fd);
+                        std::cout<<"new_fd的值为："<<new_fd<<std::endl;
 
                         //这里要加入读事件通过回调函数
-                        rw_ev.con_event=event_new(w_base,new_fd,EV_READ|EV_PERSIST,rwhand::rw_event,w_base);
-
+                        rw_ev.con_event=event_new(rw_ev.w_base,new_fd,EV_READ|EV_PERSIST,rwhand::rw_event,this);
+                        std::cout<<"222222222222222222"<<std::endl;
                         //event_set(r_event,new_fd,EV_READ|EV_PERSIST,rwhand::to_read,w_event);//事件初始化
                         //event_base_set(w_base,r_event);//如果有多个event_base，则才需要这步；就一个event_base时，是不需要这步的，因为此时current_base就等于event_base。
 
                         event_add(rw_ev.con_event,NULL);
 
                         //创建信号事件处理器
-                        w_exit_event=evsignal_new(w_base,SIGINT,ThreadPool::thread_exit,w_base);
-                        evsignal_add(w_exit_event,NULL);
+                        //w_exit_event=evsignal_new(w_base,SIGINT,ThreadPool::thread_exit,w_base);
+                        //evsignal_add(w_exit_event,NULL);
 
                         //循环
-                        event_base_dispatch(w_base); 
+                        event_base_dispatch(rw_ev.w_base);
 		}
                 return ;
 }
@@ -64,11 +66,11 @@ void ThreadPool::enqueue(int new_fd)
     return ;
 }
 
-void ThreadPool::thread_exit(evutil_socket_t sig,short event,void* arg){
+/*void ThreadPool::thread_exit(evutil_socket_t sig,short event,void* arg){
                 event_base_loopexit((struct event_base*)arg,NULL);
                 return ;
 
-}
+}*/
  
  
 ThreadPool::~ThreadPool()

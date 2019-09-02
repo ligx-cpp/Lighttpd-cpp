@@ -17,7 +17,7 @@ void ev_handler::event_handler(evutil_socket_t sock_et,short event,void* arg){
              std::cout<<"Accept error in on_accept()"<<std::endl;
              return;
         }
-
+        std::cout<<"连接成功"<<std::endl;
         ev->th_pool->enqueue(new_fd);
         
         

@@ -19,7 +19,7 @@ public:
     ThreadPool(size_t threads);
     void crt_thread();//创建套接字产生的sock
     void enqueue(int new_fd);//accept的返回的新的new_fd
-    static void thread_exit(evutil_socket_t sig,short event,void* arg);
+    //static void thread_exit(evutil_socket_t sig,short event,void* arg);
     
     ~ThreadPool();
 private:
@@ -30,6 +30,6 @@ private:
     std::condition_variable condition;
     bool stop;
     //事件 
-    struct event* w_exit_event;
+    //struct event* w_exit_event;
 };
 #endif

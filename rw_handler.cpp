@@ -48,6 +48,7 @@ void rwhand::rw_event(evutil_socket_t new_fd, short event, void* arg)
 	*/
 	rwhand* con = (rwhand*)arg;
         con->new_sock=new_fd;
+        std::cout<<"con对象的new_sock为："<<con->new_sock<<std::endl;
 	if (event & EV_READ)
 	{
 		char buf[1024];
