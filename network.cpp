@@ -20,7 +20,6 @@ int  netaddr::net_init(string ip,int port){
 
 //-----------------------------------------------------------------------------------------------------*/
 	int bind_num=bind(sock,(struct sockaddr*)&net_addr,sizeof(net_addr));
-        std::cout<<"绑定的套接字为11111111111："<<bind_num<<endl;
 	if(bind_num!=0){
 		return -1;
 	}

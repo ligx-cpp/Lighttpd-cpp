@@ -20,6 +20,6 @@ int main()
            std::cout<<"程序启动失败！"<<std::endl;
            return -1;
     }
-    
+    std::cout<<"服务器程序退出！"<<std::endl;
     return 0;
 }

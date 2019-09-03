@@ -4,16 +4,18 @@
 ThreadPool::ThreadPool(size_t threads)
 	: stop(false)
 {
-        //w_exit_event=NULL;
+        std::cout<<"开启线程"<<std::endl;
 	for (size_t i = 0; i < threads; ++i)
 		workers.emplace_back(std::thread(std::mem_fn(&ThreadPool::crt_thread),this)); //当需要利用类成员函数(ThreadPool::crt_thread)来创建子线程时，需如下码码：thread(std::mem_fn(&ThreadPool::crt_thread), Object, args..); 这个相当于STL中内置的仿函数，可以使用调取STL容器内对象的内置函数；mem_fn函数的用法是把成员函数转为函数对象，使用对象指针或对象(引用)进行绑定
 }
 
+
+
 void ThreadPool::crt_thread() {
-                //初始化base
-                rwhand rw_ev;
-                  
-		for (;;)
+                std::cout<<"this->stop为："<<this->stop<<std::endl;
+                std::cout<<"当前运行线程ID为："<<std::this_thread::get_id()<<std::endl;
+          
+		while(true)
 		{
 			int new_fd=0;
 			//C++11以后在标准库里引入了std::function模板类，这个模板概括了函数指针的概念,函数指针只能指向一个函数，而std::function对象可以代表任何可以调用的对象，比如说任何可以被当作函数一样调用的对象
@@ -27,12 +29,12 @@ void ThreadPool::crt_thread() {
 				this->tasks.pop();
 			}
                         
-			evutil_make_socket_nonblocking(new_fd);
-                        std::cout<<"new_fd的值为："<<new_fd<<std::endl;
+                        rwhand rw_ev;
+			
                         rw_ev.init(new_fd);
-                        //这里要加入读事件通过回调函数
-                        
+                        //这里要加入读事件通过回调函数    
 		}
+                std::cout<<"读写被释放"<<std::endl;
                 return ;
 }
 
