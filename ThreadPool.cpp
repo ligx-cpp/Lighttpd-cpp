@@ -12,8 +12,7 @@ ThreadPool::ThreadPool(size_t threads)
 void ThreadPool::crt_thread() {
                 //初始化base
                 rwhand rw_ev;
-                struct event_base* w_base=event_base_new();
-                rw_ev.w_base=w_base;   
+                  
 		for (;;)
 		{
 			int new_fd=0;
@@ -27,24 +26,12 @@ void ThreadPool::crt_thread() {
 				new_fd = this->tasks.front();
 				this->tasks.pop();
 			}
-
+                        
 			evutil_make_socket_nonblocking(new_fd);
                         std::cout<<"new_fd的值为："<<new_fd<<std::endl;
-
+                        rw_ev.init(new_fd);
                         //这里要加入读事件通过回调函数
-                        rw_ev.con_event=event_new(rw_ev.w_base,new_fd,EV_READ|EV_PERSIST,rwhand::rw_event,this);
-                        std::cout<<"222222222222222222"<<std::endl;
-                        //event_set(r_event,new_fd,EV_READ|EV_PERSIST,rwhand::to_read,w_event);//事件初始化
-                        //event_base_set(w_base,r_event);//如果有多个event_base，则才需要这步；就一个event_base时，是不需要这步的，因为此时current_base就等于event_base。
-
-                        event_add(rw_ev.con_event,NULL);
-
-                        //创建信号事件处理器
-                        //w_exit_event=evsignal_new(w_base,SIGINT,ThreadPool::thread_exit,w_base);
-                        //evsignal_add(w_exit_event,NULL);
-
-                        //循环
-                        event_base_dispatch(rw_ev.w_base);
+                        
 		}
                 return ;
 }
