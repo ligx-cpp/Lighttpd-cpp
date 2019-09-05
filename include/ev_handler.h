@@ -12,15 +12,19 @@
 
 class ev_handler{
 public:
-	ev_handler(int threads,int sock);
+	ev_handler(size_t thread,int sock_et);//size_t是一个无符号整形
 	~ev_handler();
         static void event_handler(evutil_socket_t sock,short event,void* arg);
 	bool start_ev();
+               
 private:
-        int sock;
-        ThreadPool *th_pool;
-	struct event_base *m_base;
-        struct event* m_exit_event;
-	struct event* m_event;
+        ThreadPool* th_pool;//线程对象
+        int sock;//绑定服务器地址的套接字
+        size_t threads;//要生成的线程数
+	struct event_base *m_base;//监听I/O事件集合
+	struct event* m_event;//专门监听I/O事件
+        
 };
+
+
 #endif

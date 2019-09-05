@@ -2,36 +2,35 @@
 #define THREAD_POOL_H
  
 #include <vector>
-#include <queue>
 #include <memory>
 #include <thread>
-#include <mutex>
-#include <signal.h>
-#include <condition_variable>
-#include <future>
-#include <functional>
-#include <stdexcept>
+#include <sys/types.h>
+#include <sys/socket.h>//为了使用sockpair()函数
+#include <unistd.h>
+#include <functional>//为了使用仿函数std::mem_fn();
 #include <event.h>
 #include <event2/util.h>
-#include <rw_handler.h>
-
+#include<iostream>
+#include <event2/bufferevent.h>
+#include <event2/buffer.h>
+//#include <rw_handler.h>
+#include <msg_thread.h>
 class ThreadPool {
 public:
     ThreadPool(size_t threads);
-    void crt_thread();//创建套接字产生的sock
-    void enqueue(int new_fd);//accept的返回的新的new_fd
-    
-    
+    void c_thread(size_t threads);
+    void crt_thread(LibeventThread *argarg);//创建套接字产生的sock
+    void SetupThread(LibeventThread *thread);//初始化子线程的数据
+    static void read_cb(struct bufferevent *bev, void* arg);
+    static void event_cb(struct bufferevent *bev, short events, void *arg);
+    static void ThreadProcess(evutil_socket_t sock,short event,void* arg); 
+    LibeventThread *m_Threads;  
     ~ThreadPool();
 private:
-    std::vector< std::thread > workers;//工作线程
-    std::queue<int> tasks;//任务队列
-    //同步
-    std::mutex queue_mutex;
-    std::condition_variable condition;
-    bool stop;
-    
-    //事件 
-    
+    size_t threads;
+    std::vector< std::thread > workers;//线程队列
 };
+
+
+
 #endif

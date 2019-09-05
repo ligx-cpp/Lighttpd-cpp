@@ -1,6 +1,6 @@
 #include <iostream>
-#include<string>
-#include<network.h>
+#include <string>
+#include <network.h>
 #include "ev_handler.h"
 
 int main()
@@ -15,7 +15,7 @@ int main()
            std::cout<<"套接字创建失败！"<<std::endl;
            return -1;
     }
-    ev_handler ev_hdr(4,sock);//输入要创建的线程树和绑定的套接字
+    ev_handler ev_hdr(2,sock);//输入要创建的线程树和绑定的套接字
     if(ev_hdr.start_ev()==false){
            std::cout<<"程序启动失败！"<<std::endl;
            return -1;
