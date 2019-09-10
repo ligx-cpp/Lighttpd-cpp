@@ -19,15 +19,14 @@ void ev_handler::sock_get(evutil_socket_t sock_et,short event,void* arg){
         }
         std::cout<<"连接成功"<<std::endl;  
         evutil_make_socket_nonblocking(new_fd);//将套接字设置非阻塞模式
-        int tid = (current_thread + 1) % 2; 
-         
+        int tid = (current_thread + 1) % 2;  
         msg_thread *thread = ev->th_pool->m_Threads + tid;//把获得的线程信息转存到一个临时的线程信息类里面然后发送到指定线程
- 
+        
         current_thread = tid;//更新值
- 
+        
         thread->new_fd=new_fd;
- 
-        write(thread->write_fd,&new_fd,sizeof(int));//通过写事件直接把套接字传入管道中去
+        thread->plugin_set=ev->plugin_set;//把刚才得到的插件信息发送到子线程中去
+        write(thread->write_fd," ",1);//通过写事件直接把套接字传入管道中去
             
         return ;        
 }
@@ -71,7 +70,7 @@ void ev_handler::set_plugin(){
 		plugin->setup_plugin=setup_plugin;//接下来是保存信息
                 plugin->remove_plugin = remove_plugin;
 		plugin->plugin_i=i;
-		plugin_set.push_back(plugin);//plugin_set是个存放plugin对象的数组
+		plugin_set.push_back(plugin);//plugin_set是个存放plugin对象的数组//每一种plugin对象都需要用动态链接库中的初始化函数去初始化。               
 	}//注意这里没有释放集合中的plugin;
         return ;
 }

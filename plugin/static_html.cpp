@@ -2,20 +2,43 @@ extern "C" plugin* SetupPlugin(){//有时你想在运行时加载一个库（并
          return new static_html();
        
 }
-extern "C" plugin* DestroyPlugin(){
 
-         delete static_html;
-       
+extern "C" plugin* DestroyPlugin(plugin* plugin_t){
+         delete plugin_t;       
 }
-//这里用的是加载类的方法来
+
+//这里用的是加载类的方法来实现的
+//本服务器设计的动态链接库的职责就是只负责写过程
 
 #ifndef STATIC_HTML_H_
 #define STATIC_HTML_H_
 #include "plugin.h"
+#include "msg_thread.h"
+typedef enum
+{
+    INIT,
+    READ,
+    DONE,
+    NOT_EXIST,
+    NOT_ACCESS
+} static_state_t;
+
+typedef struct StaticData
+{
+    StaticData(): s_fd(-1), s_state(INIT) {}
+
+    int          s_fd;
+    std::string  s_buf;
+    std::string  s_data;
+    static_state_t s_state;
+} static_data_t;
 
 class static_html : public plugin{
-      virtual int init_plugin(){
-                   
+      virtual int init_plugin(msg_thread *me,int i){
+                     static_data_t *data = new static_data_t();
+                     data->s_buf.reserve(10 * 1024);  
+                     me->plugin_data_slots[index] = data;
+                     return true;
       }
       virtual int ResponseStart(){
                

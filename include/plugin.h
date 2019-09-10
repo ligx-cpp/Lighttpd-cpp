@@ -22,6 +22,6 @@ public:
         int   plugin_i;
 };
 typedef Plugin* (*SetupPlugin)();//这里借用了网上的加载类的解法     
-typedef void (*Destroy_plugin)(plugin*);
+typedef void (*Destroy_plugin)(plugin* plugin_t);
 
 #endif

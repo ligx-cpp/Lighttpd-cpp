@@ -1,6 +1,5 @@
 #ifndef THREAD_POOL_H
 #define THREAD_POOL_H
- 
 #include <vector>
 #include <memory>
 #include <thread>
@@ -22,14 +21,11 @@ public:
     void SetupThread(msg_thread *thread);//初始化子线程的数据
     static void read_cb(struct bufferevent *bev, void* arg);
     static void event_cb(struct bufferevent *bev, short events, void *arg);
-    static void ThreadProcess(evutil_socket_t sock,short event,void* arg); 
+    static void ThreadProcess(evutil_socket_t sock,short event,void* arg);
     msg_thread *m_Threads;  
     ~ThreadPool();
 private:
     size_t thread_num;
     std::vector< std::thread > workers;//线程队列
 };
-
-
-
 #endif

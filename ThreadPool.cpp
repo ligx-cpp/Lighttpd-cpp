@@ -38,9 +38,8 @@ void ThreadPool::SetupThread(msg_thread *me)//最好还是传指针，传值还�
 void ThreadPool::ThreadProcess(evutil_socket_t sock,short event,void* arg){
        msg_thread *me = (msg_thread*) arg;
        //先从管道中读数据
-       int new_fd;//定义一个临时变量来存放从管道中读出来的套接字     
-       read(me->read_fd,&new_fd,sizeof(int));//这边把套接字从管道中读出来
-       me->new_fd=new_fd;//最后把这个临时的信息赋值给线程信息中一并传给事件循环
+       char buf[10*1024];//定义一个临时变量来存放从管道中读出来的套接字     
+       read(me->read_fd,buf,sizeof(buf));//这边把套接字从管道中读出来
        std::cout<<"新返回的套接字"<<me->new_fd<<std::endl;
 
        struct bufferevent *bev;//添加新事件
@@ -52,19 +51,27 @@ void ThreadPool::ThreadProcess(evutil_socket_t sock,short event,void* arg){
 }
 
 void ThreadPool::event_cb(struct bufferevent *bev, short events, void *arg){
-       msg_thread *con = (msg_thread*) arg;
+       msg_thread *me = (msg_thread*) arg;
        bufferevent_free(bev);//如果设置了 BEV_OPT_CLOSE_ON_FREE标志,并且 bufferevent有一个套接字或者底层bufferevent作为其传输端口,则释放bufferevent将关闭这个传输端口;如果出现异常就释放事件
-       std::cout<<"套接字 "<<con->new_fd<<" 关闭"<<std::endl;
+       std::cout<<"套接字 "<<me->new_fd<<" 关闭"<<std::endl;
        return ;
 }
 
 void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
 {
-	
-		char buf[1024];
-	        bzero(buf,sizeof(buf));
-	        bufferevent_read(bev,buf,sizeof(buf));
-                std::cout<<buf<<std::endl;     
+	        msg_thread *me = (msg_thread*) arg;
+                for(int i=0;i<me->plugin_set.size();++i)      
+                     me->plugin_set[i].init(msg_thread *me,i);
+		char buffer[10*1024];//这也就传了10个字节
+	        bzero(buffer,sizeof(buffer));
+	        bufferevent_read(bev,buffer,sizeof(buf));
+                string buf;
+                buf=buffer;
+                //std::cout<<buf<<std::endl;
+                me->parser_msg.parser_request(me,buf);
+                //这里必须能获得me解析过后的消息并把它传给动态库去执行
+                
+
 	        bzero(buf,sizeof(buf));
 		std::string outbuf= "HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n<html>\r\n<body>\r\nhello\r\n</body>\r\n</html>";
 		bufferevent_write(bev,outbuf.c_str(),outbuf.size());
