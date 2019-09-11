@@ -17,7 +17,7 @@ public:
 	~ev_handler();
         static void sock_get(evutil_socket_t sock,short event,void* arg);
 	bool start_ev();
-        void set_plugin();
+        int set_plugin();
 private:
         ThreadPool* th_pool;//线程对象
         int sock;//绑定服务器地址的套接字

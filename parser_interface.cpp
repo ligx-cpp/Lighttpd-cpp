@@ -24,46 +24,47 @@ int parser_interface::parser_request(msg_thread *me,std::string& sub_buf){//把�
 
 int parser_interface::on_message_begin(http_parser *parser){
      //开始解析消息
-     me=static_cast<msg_thread*>(parser->data);//通过这种方式将对对象传来因为回调函数的参数是固定形式的
+     msg_thread* me=static_cast<msg_thread*>(parser->data);//通过这种方式将对对象传来因为回调函数的参数是固定形式的
      me->quest_msg=new http_quest_msg();//在开始解析时为每一次解析分配一个对象
      return 0;
 }
 
 int parser_interface::url_cb(http_parser *parser, const char *buf, size_t len){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      me->quest_msg->http_url.assign(buf, len);//用c字符串buf开始len个字符赋值    
      return 0;
 }
 
 int parser_interface::header_field_cb(http_parser *parser, const char *buf, size_t len){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      me->quest_msg->http_header_field.assign(buf, len);
      return 0;
 }
 
 int parser_interface::header_value_cb(http_parser *parser, const char *buf, size_t len){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      http_quest_msg* request=me->quest_msg;
-     request->http_headers[request->http_header_field]=buf;//把“名值对”用map匹配起来
+     request->http_headers[request->http_header_field]=std::string(buf,len);//把“名值对”用map匹配起来
      return 0;
 }
 
 int parser_interface::on_headers_complete(http_parser *parser){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      http_quest_msg* request=me->quest_msg;
-     me->quest_msg->http_method = (char *)http_method_str(parser->method);//所用的方法
+     request->http_method = (char *)http_method_str(parser->method);//所用的方法
      return 0;
 }
 
 int parser_interface::body_cb(http_parser *parser, const char *buf, size_t len){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      me->quest_msg->http_body.assign(buf, len);
      return 0;
 }
 
 int parser_interface::on_message_complete(http_parser *parser){
-     me=static_cast<msg_thread*>(parser->data);
+     msg_thread* me=static_cast<msg_thread*>(parser->data);
      http_quest_msg *request = me->quest_msg;
+     me->parsered_msg=request;
      me->quest_queue.push(request);
      me->quest_msg = NULL;
      return 0;

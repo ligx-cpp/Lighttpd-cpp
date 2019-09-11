@@ -9,10 +9,12 @@
 #include <functional>//为了使用仿函数std::mem_fn();
 #include <event.h>
 #include <event2/util.h>
+#include "parser_interface.h"
 #include <iostream>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 #include <msg_thread.h>
+#include "plugin.h"
 class ThreadPool {
 public:
     ThreadPool(size_t thread_num);

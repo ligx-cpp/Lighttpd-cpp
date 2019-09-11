@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include"http_parser.h"
-#include"http_msg.h"
+#include"msg_thread.h"
 #include<queue>
 class parser_interface{//基本上网上调用http_parser库的博客都一个模子刻出来的;我也是常规使用
 public:

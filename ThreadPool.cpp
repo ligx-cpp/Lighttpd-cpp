@@ -60,22 +60,44 @@ void ThreadPool::event_cb(struct bufferevent *bev, short events, void *arg){
 void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
 {
 	        msg_thread *me = (msg_thread*) arg;
-                for(int i=0;i<me->plugin_set.size();++i)      
-                     me->plugin_set[i].init(msg_thread *me,i);
-		char buffer[10*1024];//这也就传了10个字节
+                //解析请求部分
+                parser_interface parser_msg;
+                for(size_t i=0;i<me->plugin_set.size();++i){
+                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);     
+                     plugin_m->init_plugin(me,i);
+		}
+                char buffer[10*1024];//这是10M
 	        bzero(buffer,sizeof(buffer));
-	        bufferevent_read(bev,buffer,sizeof(buf));
-                string buf;
+	        bufferevent_read(bev,buffer,sizeof(buffer));
+                std::string buf;
+                buf.reserve(10*1024);
                 buf=buffer;
                 //std::cout<<buf<<std::endl;
-                me->parser_msg.parser_request(me,buf);
+                parser_msg.parser_request(me,buf);
                 //这里必须能获得me解析过后的消息并把它传给动态库去执行
-                
 
-	        bzero(buf,sizeof(buf));
-		std::string outbuf= "HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\n<html>\r\n<body>\r\nhello\r\n</body>\r\n</html>";
-		bufferevent_write(bev,outbuf.c_str(),outbuf.size());
-                std::cout<<"发送的数据长度为:"<<outbuf.size()<<std::endl;
+                for(size_t i=0;i<me->plugin_set.size();++i){
+                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
+                     plugin_m->ResponseStart(me,i);
+                }
+	        //bzero(buf,sizeof(buf));
+		std::string outbuf;
+		outbuf.reserve(10*1024); 
+                outbuf+= (me->sponse_msg->make_response());//先写好响应头
+                for(size_t i=0;i<me->plugin_set.size();++i){
+                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
+                     plugin_m->Write(me,i);//获得响应体
+                } 
+                outbuf+=(me->sponse_msg->http_body);
+
+                bufferevent_write(bev,outbuf.c_str(),outbuf.size());
+                for(size_t i=0;i<me->plugin_set.size();++i){
+                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
+                     plugin_m->ResponseEnd(me,i);
+                }
+                delete me->parsered_msg;
+		me->parsered_msg = NULL;
+		me->sponse_msg->reset_response();
                 return ;
 }
 
