@@ -4,8 +4,7 @@ plugin::plugin(){
 	DefaultFile="index.html";
 	DocumentRoot ="./html";
 	ConfigFile="./slighttpd.conf";
-	path_list.push_back("plugin/static_html.so");
-        //path_list.push_back("plugin/plugin_cgi.so");
+	path_list.push_back("plugin/static_html/static_html.so");
 }
 
 
