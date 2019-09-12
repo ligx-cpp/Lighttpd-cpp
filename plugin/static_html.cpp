@@ -6,7 +6,6 @@
 #include "plugin.h"
 #include "msg_thread.h"
 #include <unistd.h>
-#include <io.h>
 #include <regex.h>
 //下面三个是open函数的头文件
 #include <sys/types.h>
@@ -72,10 +71,10 @@ class static_html : public plugin{
       }
 
 
-      virtual bool Write(msg_thread *me,int i)
+      virtual int Write(msg_thread *me,int i)
       {
             static_data_t  *data = static_cast<static_data_t*>(me->plugin_data_slots[i]);
-            http_quest_msg *request = me->http_req_parsed;
+            http_quest_msg *request = me->parsered_msg;
 
             if (data->s_state == INIT)
             {
@@ -96,8 +95,8 @@ class static_html : public plugin{
             }*/
 
         int ret = read(data->s_fd, &data->s_buf[0], data->s_buf.capacity());//从html文件中读取消息;s_fd是html文件的文件描述符
-        me->sponse_msg.http_body += data->s_buf[0];
-        return true;
+        me->sponse_msg->http_body += data->s_buf[0];
+        return 0;
         /*if (ret <= 0)
         {
             data->s_state = DONE;
@@ -111,7 +110,7 @@ class static_html : public plugin{
         }*/
     }
 
-    virtual bool ResponseEnd(msg_thread *me,int i)
+    virtual int ResponseEnd(msg_thread *me,int i)
     {
         static_data_t *data = static_cast<static_data_t*>(me->plugin_data_slots[i]);
 
@@ -122,12 +121,12 @@ class static_html : public plugin{
             data->s_data.clear();
         }
         
-        return true;
+        return 0;
     }
 
     virtual void Close(msg_thread *me,int i)
     {
-        static_data_t *data = static_cast<static_data_t*>(me->plugin_data_slots[index]);
+        static_data_t *data = static_cast<static_data_t*>(me->plugin_data_slots[i]);
 
         if (data->s_fd != -1)
         {

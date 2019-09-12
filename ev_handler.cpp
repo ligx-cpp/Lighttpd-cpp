@@ -60,7 +60,7 @@ int ev_handler::set_plugin(){
 			return -1;
 		}
 
-                plugin::DestroyPlugin remove_plugin=(plugin::DestroyPlugin)dlsym(handle,"DestroyPlugin");
+                plugin::Destroyplugin remove_plugin=(plugin::Destroyplugin)dlsym(handle,"Destroyplugin");
 	        if(!remove_plugin){
 			std::cout<<"remove_plugin为空！"<<std::endl;
 			dlerror();
@@ -79,12 +79,12 @@ ev_handler::~ev_handler(){
         delete th_pool;
 	if(m_base){
 	      event_free(m_event);
-	      event_base_free(m_base);
+	      event_base_free(m_base);  
 	}
         //在这里释放动态库
         for(int i=0;i<plugin_set.size();++i){
-              plugin* plugin_m=static_cast<plugin*>plugin_set[i];
-              plugin::DestroyPlugin remove_plugin = plugin->remove_plugin;
+              plugin* plugin_m=static_cast<plugin*>(plugin_set[i]);
+              plugin::Destroyplugin remove_plugin = plugin_m->remove_plugin;
               remove_plugin(plugin_m);//在这里调用
               dlclose(plugin_m->handle);//关闭
         }

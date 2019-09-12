@@ -28,7 +28,7 @@ public:
         
   http_sponse_msg *sponse_msg;
         
-  std::queue<http_quest_msg> quest_queue;//制作一个请求队列;
+  std::queue<http_quest_msg*> quest_queue;//制作一个请求队列;
 };//子线程所必备的信息专门用一个结构体来传递
 
 #endif

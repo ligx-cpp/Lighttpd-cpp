@@ -11,6 +11,7 @@
 #include<event2/util.h>
 #include<plugin.h>
 #include<vector>
+#include <dlfcn.h> 
 class ev_handler{
 public:
 	ev_handler(size_t thread_num,int sock_et);//size_t是一个无符号整形
@@ -25,7 +26,7 @@ private:
 	struct event_base *m_base;//监听I/O事件集合
 	struct event* m_event;//专门监听I/O事件(连接事件)
         plugin plugin_t;
-        std::vector<plugin*>plugin_set;//存放插件集合
+        std::vector<void*>plugin_set;//存放插件集合
 };
 
 

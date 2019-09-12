@@ -1,7 +1,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 #include<stdio.h>
-#include<list>
+#include<vector>
 #include<string>
 #include"msg_thread.h"
 
@@ -9,12 +9,12 @@ class plugin{
 public:
 	plugin();
 	virtual ~plugin();//析沟函数必须是虚函数
-	int init_plugin(msg_thread *me,int i);
+	virtual int init_plugin(msg_thread *me,int i);
 	virtual int ResponseStart(msg_thread *me,int i);
 	virtual int Write(msg_thread *me,int i);
 	virtual int ResponseEnd(msg_thread *me,int i);
-	std::list<std::string> path_list;//插件链表
-        std::string CGIRoot;		/*CGI根路径*/
+        virtual void Close(msg_thread *me,int i);
+	std::vector<std::string> path_list;//插件链表
 	std::string DefaultFile;	/*默认文件名称*/
 	std::string DocumentRoot;       /*根文件路径*/
 	std::string ConfigFile;		/*配置文件路径和名称*/

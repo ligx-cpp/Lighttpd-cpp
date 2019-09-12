@@ -11,8 +11,16 @@ public:
         std::string http_header_field;
 	std::string http_body;
 	std::map<std::string,std::string>http_headers;//请求头
-        std::string get_request(){
-             
+        void get_request(){
+             std::cout<<http_method<<" "<<http_url<<" "<< "HTTP/1.1"<<"\r\n";//状态行;把值传递到流中;这里默认开启长连接;在HTTP/1.1里，就默认是开启了keep-alive
+
+              std::map<std::string,std::string>::iterator iter=http_headers.begin();
+              while (iter!=http_headers.end())//这些"名值对"都是响应头部
+              {
+                     std::cout<<iter->first<<":"<<iter->second<< "\r\n";//名值对
+                     ++iter;
+              }//这里我想看看请求头是什么
+              return ;
         }	
 };
 class http_sponse_msg{

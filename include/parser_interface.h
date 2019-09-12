@@ -20,7 +20,7 @@ public:
         static int body_cb(http_parser *parser, const char *buf, size_t len);//当解析到HTTP消息主体的回调
         static int on_message_complete(http_parser *parser);//通知回调：说明消息解析完毕
 private:
-        http_parser parser;//结构体对象;
+        http_parser* parser;//结构体对象;
         http_parser_settings	settings;//设置回调的对象
 };
 #endif

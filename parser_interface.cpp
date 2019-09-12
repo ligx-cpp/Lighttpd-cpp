@@ -1,9 +1,6 @@
 #include<parser_interface.h>
 
 parser_interface::parser_interface(){
-     quest_msg=NULL;
-     fin_msg=NULL;
-     sponse_msg=NULL;
      bzero(&settings,sizeof(settings));
      settings.on_message_begin    = on_message_begin;
      settings.on_url              = url_cb;//url
@@ -17,8 +14,8 @@ parser_interface::parser_interface(){
 }
 
 int parser_interface::parser_request(msg_thread *me,std::string& sub_buf){//把要解析的字符窗传递进来;还有刚开始信息
-     parser.data=me;//像之前的event回调函数传递对象的方式来传递对象
-     http_parser_execute(&parser,&settings,sub_buf.c_str(),sub_buf.size());
+     parser->data=me;//像之前的event回调函数传递对象的方式来传递对象
+     http_parser_execute(parser,&settings,sub_buf.c_str(),sub_buf.size());
      return 0;
 }
 
@@ -51,7 +48,7 @@ int parser_interface::header_value_cb(http_parser *parser, const char *buf, size
 int parser_interface::on_headers_complete(http_parser *parser){
      msg_thread* me=static_cast<msg_thread*>(parser->data);
      http_quest_msg* request=me->quest_msg;
-     request->http_method = (char *)http_method_str(parser->method);//所用的方法
+     request->http_method = (char *)http_method_str((http_method)parser->method);//所用的方法
      return 0;
 }
 
