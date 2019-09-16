@@ -4,15 +4,17 @@
 #include<map>
 #include<sstream>
 #include <iostream>
+
 class http_quest_msg{
 public:
-	std::string http_method;
-	std::string http_url;
-        std::string http_header_field;
-	std::string http_body;
+        char* method=NULL;
+        char* url=NULL;
+        char* body=NULL;
+        char* name=NULL;
+        char* value=NULL;
 	std::map<std::string,std::string>http_headers;//请求头
         void get_request(){
-             std::cout<<http_method<<" "<<http_url<<" "<< "HTTP/1.1"<<"\r\n";//状态行;把值传递到流中;这里默认开启长连接;在HTTP/1.1里，就默认是开启了keep-alive
+             std::cout<<method<<" "<<url<<" "<< "HTTP/1.1"<<"\r\n";//状态行;把值传递到流中;这里默认开启长连接;在HTTP/1.1里，就默认是开启了keep-alive
 
               std::map<std::string,std::string>::iterator iter=http_headers.begin();
               while (iter!=http_headers.end())//这些"名值对"都是响应头部
@@ -25,13 +27,14 @@ public:
 };
 class http_sponse_msg{
 public:
-	int http_code;//状态码：100,200,300,等
-	std::string http_code_des;//状态码描述
+	int http_code=200;//状态码：100,200,300,等
+	std::string http_code_des="OK";//状态码描述  默认为200 OK
 	std::string http_body;
 	std::map<std::string,std::string>http_headers;//响应头
 	std::string make_response(){
               //我可以利用流将一个任意的类型转换到特定的目标类型;(很方便)
               std::stringstream oss;//将要发送的消息输入到统一的输入输出流中
+
               oss<<"HTTP/1.1" <<" "<<http_code<<" "<< http_code_des<<"\r\n";//状态行;把值传递到流中;这里默认开启长连接;在HTTP/1.1里，就默认是开启了keep-alive
 
               std::map<std::string,std::string>::iterator iter=http_headers.begin();

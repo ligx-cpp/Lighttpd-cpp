@@ -21,11 +21,10 @@ void ev_handler::sock_get(evutil_socket_t sock_et,short event,void* arg){
         evutil_make_socket_nonblocking(new_fd);//将套接字设置非阻塞模式
         int tid = (current_thread + 1) % 2;  
         msg_thread *thread = ev->th_pool->m_Threads + tid;//把获得的线程信息转存到一个临时的线程信息类里面然后发送到指定线程
-        
-        current_thread = tid;//更新值
+        current_thread = tid;//更新值这里有问题
         
         thread->new_fd=new_fd;
-        thread->plugin_set=ev->plugin_set;//把刚才得到的插件信息发送到子线程中去
+        thread->plugin_set=ev->plugin_set;//把刚才得到的插件信息发送到子线程中去每个子线程得到的都是相同的插件集合
         write(thread->write_fd," ",1);//通过写事件直接把套接字传入管道中去
             
         return ;        
@@ -43,24 +42,24 @@ bool ev_handler::start_ev(){
 }
 int ev_handler::set_plugin(){
         std::string path;
-	for(int i=0;i<plugin_t.path_list.size();++i){//用来获取不同插件的动态链接库(我只实现了一个)在函数运行时动态的加载
-		path=plugin_t.path_list[i];
+	for(int i=0;i<p_plugin.path_list.size();++i){//用来获取不同插件的动态链接库(我只实现了一个)在函数运行时动态的加载
+		path=p_plugin.path_list[i];
 		//这里通过提供dlopen、dlsym、dlerror和dlcolose函数获取动态链接库的函数(大概就是三段式1.dlopen()2.dlsym()3.dlclose())
 		void* handle=dlopen(path.c_str(),RTLD_LAZY);//在dlopen的()函数以指定模式打开指定的动态连接库文件,并返回一个句柄给调用进程: RTLD_LAZY 暂缓决定，等有需要时再解出符号 编译时候要加入-ldl (指定dl库)
-		if (!handle) {
+		if (handle==NULL) {
 		        std::cout<<"handle为空!"<<std::endl;
 			dlerror();//dlerror返回一个字符串用以描述错误
                         return -1;
 		}
 
-		plugin::SetupPlugin setup_plugin=(plugin::SetupPlugin)dlsym(handle,"SetupPlugin");//dlsym从指定的（由dlopen的返回值指定）库中获得指定的函数;;这里就开始执行插件函数了；
+		plugin::SetupPlugin setup_plugin=(plugin::SetupPlugin)dlsym(handle,"SetupPlugin");//dlsym从指定的（由dlopen的返回值指定）库中获得指定的函数;;这里就开始执行插件函数了;函数返回值是void*,指向函数的地址，供调用使用
 	        if(!setup_plugin){
 			std::cout<<"setup_plugin为空！"<<std::endl;
 			dlerror();
 			return -1;
 		}
 
-                plugin::Destroyplugin remove_plugin=(plugin::Destroyplugin)dlsym(handle,"Destroyplugin");
+                plugin::Destroyplugin remove_plugin=(plugin::Destroyplugin)dlsym(handle,"DestroyPlugin");
 	        if(!remove_plugin){
 			std::cout<<"remove_plugin为空！"<<std::endl;
 			dlerror();
@@ -71,7 +70,7 @@ int ev_handler::set_plugin(){
                 plugin_t->remove_plugin=remove_plugin;
 		plugin_t->plugin_i=i;
                 plugin_t->handle=handle;
-		plugin_set.push_back(plugin_t);//plugin_set(动态链接库的集合)是个存放plugin对象的数组;每一种plugin_t对象都需要用动态链接库中的初始化函数去初始化。               
+		plugin_set.push_back(plugin_t);//plugin_set(动态链接库的集合)是个存放plugin对象的数组;每一种plugin_t对象都需要用动态链接库中的初始化函数去初始化。  这个plugin_set集合只是个临时存放链接库集合的地方;在回调函数中sock_get()中会被转存到msg_thread类中的plugin_set集合中  
 	}
         return 0;
 }

@@ -12,9 +12,6 @@ ThreadPool::ThreadPool(size_t thread_num)
 
 void ThreadPool::SetupThread(msg_thread *me)//最好还是传指针，传值还是太浪费资源
 {
-       //建立子线程中的libevent读写事件处理机制
-       me->w_base = event_init();//每个子线程都有单独的事件集合;如果 event_base 被设置了使用锁，那么它在多个线程中可以安全的访问。但是对 event_base 的循环只能在某个线程中执行。如果希望在多个线程中进行循环，那么应该为每一个线程创建一个 event_base
-
        //在主线程和子线程之间建立管道
        int fd[2];//通过(消息机制)向指定线程发送消息
        int ret = socketpair(AF_LOCAL, SOCK_STREAM, 0, fd);//socketpair常用于描述符传递的处理中,所以这里使用了这个东西;并且这是全双工的（因为fork的时候将sockets[0]和socket[1]的引用计数都加了1，所以在父子进程中将多出来的减去。close不是立刻关闭文件描述符，而只是将引用计数减一.
@@ -24,6 +21,8 @@ void ThreadPool::SetupThread(msg_thread *me)//最好还是传指针，传值还�
        }
        me->read_fd = fd[0];
        me->write_fd = fd[1];
+       //建立子线程中的libevent读写事件处理机制
+       me->w_base = event_init();//每个子线程都有单独的事件集合;如果 event_base 被设置了使用锁，那么它在多个线程中可以安全的访问。但是对 event_base 的循环只能在某个线程中执行。如果希望在多个线程中进行循环，那么应该为每一个线程创建一个 event_base
 
        //让子线程的状态机监听管道
        event_set(&me->r_event,me->read_fd,EV_READ|EV_PERSIST,ThreadPool::ThreadProcess,me);//event_set()跟event_new()功能是一样的，他们的区别在我的理解看来就是直接实例化一个类对象和用new()来实例化一个类对象的区别
@@ -40,8 +39,7 @@ void ThreadPool::ThreadProcess(evutil_socket_t sock,short event,void* arg){
        //先从管道中读数据
        char buf[10*1024];//定义一个临时变量来存放从管道中读出来的套接字     
        read(me->read_fd,buf,sizeof(buf));//这边把套接字从管道中读出来
-       std::cout<<"新返回的套接字"<<me->new_fd<<std::endl;
-
+       std::cout<<"新返回的套接字为: "<<me->new_fd<<std::endl;
        struct bufferevent *bev;//添加新事件
        bev=bufferevent_socket_new(me->w_base,me->new_fd,BEV_OPT_CLOSE_ON_FREE);//BEV_OPT_CLOSE_ON_FREE:释放bufferevent时关闭底层传输端口.这将关闭底层套接字,释放底层bufferevent等;提供给bufferevent_socket_new()的套接字务必是非阻塞模式(这在之前已经设置过了)如果想以后设置文件描述符,可以设置fd为-1.     
        bufferevent_setcb(bev,read_cb,NULL,event_cb,me);//给缓冲区设置回调(写回调因为用不到所以置为空)
@@ -60,44 +58,48 @@ void ThreadPool::event_cb(struct bufferevent *bev, short events, void *arg){
 void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
 {
 	        msg_thread *me = (msg_thread*) arg;
-                //解析请求部分
-                parser_interface parser_msg;
+                //解析请求部分                 
                 for(size_t i=0;i<me->plugin_set.size();++i){
-                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);     
+                     plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);          
                      plugin_m->init_plugin(me,i);
 		}
                 char buffer[10*1024];//这是10M
 	        bzero(buffer,sizeof(buffer));
 	        bufferevent_read(bev,buffer,sizeof(buffer));
-                std::string buf;
-                buf.reserve(10*1024);
-                buf=buffer;
-                //std::cout<<buf<<std::endl;
-                parser_msg.parser_request(me,buf);
+                int num=sizeof(buffer);//为了将获得的缓冲区中的字节数传到解析函数中去
+                parser_interface parser_msg;
+                http_quest_msg* quest_msg=new http_quest_msg();
+                parser_msg.parser_request(quest_msg,buffer,num);
+
+                me->parsered_msg=(*quest_msg);//把http信息放在线程信息里面传入回调函数中          
                 //这里必须能获得me解析过后的消息并把它传给动态库去执行
+                //这里可以显示解析后的消息
 
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseStart(me,i);
                 }
+
 	        //bzero(buf,sizeof(buf));
 		std::string outbuf;
 		outbuf.reserve(10*1024); 
-                outbuf+= (me->sponse_msg->make_response());//先写好响应头
+                outbuf=me->sponse_msg.make_response();//先写好响应头
+                std::cout<<outbuf<<std::endl;
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->Write(me,i);//获得响应体
                 } 
-                outbuf+=(me->sponse_msg->http_body);
+                outbuf+=(me->sponse_msg.http_body);
 
                 bufferevent_write(bev,outbuf.c_str(),outbuf.size());
+std::cout<<"111111111111111111111"<<std::endl;
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseEnd(me,i);
                 }
-                delete me->parsered_msg;
-		me->parsered_msg = NULL;
-		me->sponse_msg->reset_response();
+                 
+                delete quest_msg;
+		me->sponse_msg.reset_response();
                 return ;
 }
 

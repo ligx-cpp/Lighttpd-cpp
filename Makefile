@@ -16,7 +16,7 @@ OBJS1=$(patsubst %.c,%.o,$(SRCS1))
 	$(CC) -c $^ $(INCLUDE) $(CC_FLAG)  -o $@
 %.o:%.c
 	$(CC) -c $^ $(INCLUDE) $(CC_FLAG)  -o $@
-  
+
 #上面这8行少那一行都不行
 
 target=main

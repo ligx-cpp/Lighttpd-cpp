@@ -4,7 +4,6 @@
 #include<vector>
 #include<string>
 #include"msg_thread.h"
-
 class plugin{
 public:
 	plugin();

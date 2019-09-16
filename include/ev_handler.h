@@ -11,7 +11,7 @@
 #include<event2/util.h>
 #include<plugin.h>
 #include<vector>
-#include <dlfcn.h> 
+#include <dlfcn.h>
 class ev_handler{
 public:
 	ev_handler(size_t thread_num,int sock_et);//size_t是一个无符号整形
@@ -25,7 +25,7 @@ private:
         size_t thread_num;//要生成的线程数(线程数只能是正的;所以用了size_t)
 	struct event_base *m_base;//监听I/O事件集合
 	struct event* m_event;//专门监听I/O事件(连接事件)
-        plugin plugin_t;
+        plugin p_plugin;
         std::vector<void*>plugin_set;//存放插件集合
 };
 
