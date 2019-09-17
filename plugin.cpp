@@ -1,9 +1,6 @@
 #include"plugin.h"
 
 plugin::plugin(){
-	DefaultFile="index.html";
-	DocumentRoot ="./html";
-	ConfigFile="./slighttpd.conf";
 	path_list.push_back("plugin/static_html/plugin_static.so");
 }
 
