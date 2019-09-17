@@ -79,20 +79,20 @@ void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseStart(me,i);
                 }
-
 	        //bzero(buf,sizeof(buf));
-		std::string outbuf;
-		outbuf.reserve(10*1024); 
-                outbuf=me->sponse_msg.make_response();//先写好响应头
-                std::cout<<outbuf<<std::endl;
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->Write(me,i);//获得响应体
                 } 
+		std::string outbuf;
+		outbuf.reserve(10*1024); 
+                outbuf=me->sponse_msg.make_response();//先写好响应头
+                std::cout<<outbuf<<std::endl;
+                
                 outbuf+=(me->sponse_msg.http_body);
 
                 bufferevent_write(bev,outbuf.c_str(),outbuf.size());
-std::cout<<"111111111111111111111"<<std::endl;
+
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseEnd(me,i);

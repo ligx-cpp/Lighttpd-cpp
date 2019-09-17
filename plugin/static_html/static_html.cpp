@@ -22,22 +22,25 @@ class static_html : public plugin{
       }
       virtual int ResponseStart(msg_thread *me,int i){
                file_data  *data = static_cast<file_data*>(me->plugin_data_slots[i]);
+               std::string temp=me->parsered_msg.url;
                //接下来用正则表达时匹配的方法找到响应的html网页
                regex_t    reg;//regex_t 是一个结构体数据类型，用来存放编译后的规则表达式
-               regmatch_t pmatch;//regmatch_t 是一个结构体数据类型,成员rm_so存放匹配文本串在目标串中的开始位置,rm_eo 存放结束位置。
+               regmatch_t pmatch[1];//regmatch_t 是一个结构体数据类型,成员rm_so存放匹配文本串在目标串中的开始位置,rm_eo 存放结束位置。
                int        ret;
 
-        regcomp(&reg, "^/html/*$", REG_EXTENDED);//这个函数把指定的规则表达式pattern编译成一种特定的数据格式compiled，这样可以使匹配更有效。函数regexec会使用这个数据在目标文本串中进行模式匹配。执行成功返回０。
-        ret = regexec(&reg, me->parsered_msg.url, 1, &pmatch, 0);//当我们编译好规则表达式后，就可以用regexec匹配我们的目标文本串了，如果在编译规则表达式的时候没有指定cflags的参数为REG_NEWLINE，则默认情况下是忽略换行符的，也就是把整个文本串当作一个字符串处理。执行成功返回０。“1”可能指的是我只会去得到一个匹配字串
-std::cout<<"xxxxxxxxxxxxxxxxxxxxxxx"<<std::endl;//执行成功才返回0
-        std::cout<<ret<<std::endl;
+        int cnt=regcomp(&reg, "^/html/[^/]*$", REG_EXTENDED);//这个函数把指定的规则表达式pattern编译成一种特定的数据格式compiled，这样可以使匹配更有效。函数regexec会使用这个数据在目标文本串中进行模式匹配。执行成功返回０。
+        if(cnt!=0){
+          std::cout<<"regcomp操作失败！"<<std::endl;//执行成功才返回0
+        }
+        ret = regexec(&reg, temp.c_str(), 1, pmatch, 0);//当我们编译好规则表达式后，就可以用regexec匹配我们的目标文本串了，如果在编译规则表达式的时候没有指定cflags的参数为REG_NEWLINE，则默认情况下是忽略换行符的，也就是把整个文本串当作一个字符串处理。执行成功返回０。“1”可能指的是我只会去得到一个匹配字串
+
         if (ret)
         {
             data->s_state = NOT_ACCESS;
         }
         else
         {
-            std::string temp=me->parsered_msg.url;
+            
             std::string path = temp.substr(1);
 
             if (access(path.c_str(), R_OK) == -1)//access函数检查调用进程是否可以对指定的文件执行某种操作 F_OK 值为0，判断文件是否存在 X_OK 值为1，判断对文件是可执行权限 W_OK 值为2，判断对文件是否有写权限 R_OK 值为4，判断对文件是否有读权限
@@ -58,13 +61,11 @@ std::cout<<"xxxxxxxxxxxxxxxxxxxxxxx"<<std::endl;//执行成功才返回0
       {
             file_data  *data = static_cast<file_data*>(me->plugin_data_slots[i]);
             std::string temp=me->parsered_msg.url;
-std::cout<<data->s_state<<std::endl;
             if (data->s_state == INIT)
             {
                  data->s_state = READ;
                  data->s_fd= open(temp.substr(1).c_str(), O_RDONLY); //substr()函数只有一个数字1表示从下标为1开始一直到结尾
-                 std::cout<<"vvvvvvvvvvvvvvvvvvvvvvv"<<std::endl;
-            std::cout<<data->s_fd<<std::endl;
+                 
             }
             /*else if (data->s_state == NOT_ACCESS)
             {
@@ -80,7 +81,9 @@ std::cout<<data->s_state<<std::endl;
             }*/
 
         int ret = read(data->s_fd, data->s_buf, sizeof(data->s_buf));//从html文件中读取消息;s_fd是html文件的文件描述符
+std::cout<<"vvvvvvvvvvvvvvvvvvvvvvv"<<std::endl;
         std::cout<<data->s_buf<<std::endl;
+std::cout<<"xxxxxxxxxxxxxxxxxxxxxxx"<<std::endl;
         me->sponse_msg.http_body = data->s_buf;
         return 0;
         /*if (ret <= 0)

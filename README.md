@@ -2,6 +2,19 @@
 
 
         感谢CSDN上的一位博主：jiange_zh 他的博客给了我很多启发.写在前面 非常感谢！
+2019-09-17更新：这次更新完成了整个项目的基本功能.即完成了从浏览器的搜索窗输入192.168.56.101:4000/html/index.html
+然后从浏览器中显示index.html中的内容.这次更新基本上是接近了项目的尾声,按照我的想法接下来要做的是
+对这个项目增加一些特色功能比如状态机功能;这个暂且放置;先说一下在这期间遇到的一些问题:首先是调用第
+三方库解析http请求时始终不成功;我首先是找到了http_parser(第三方库的名字)的github源码地址;并且仔细
+阅读了它的使用说明并且我在网上找到了一个使用示例.并且也是照着做的;不过还是有问题它始终显示我解析的
+url的前四个字符(因为首先解析的就是url)然后就显示terminate called after throwing an instance of 'std::logic_error' 
+what(): basic_string::_S_construct NULL not valid;网上的解析是对空指针进行操作
+然后左改右改也没找到问题出在哪里...大概是在那天晚上我被折磨的筋疲力尽的时候我开始静下心来去仔细
+分析他的使用说明中的每一个参数的意义的时候我发现了我的错误来源:在http_parser_execute(parser,&settings,buffer,buffer_num)
+这一句中,问题就处在最后一个参数上,我初以为最后一个参数像read()函数那样是buffer中的字节大小,然后我的写法是
+http_parser_execute(parser,&settings,buffer,sizeof(buffer));但是问题在于我传进来的buffer是一个指针,
+sizeof(buffer)此时仅仅表示该指针所占内存的大小,而不是buffer所指向内存的大小,这样继续执行下去就报错了;
+改了以后就能正确运行了并显示了.问题最后给出第三方库的github源码地址https://github.com/nodejs/http-parser.git
         
 2019-09-12更新：这次更新给我的程序在回显的基础上添加了一些功能;只有回显显得整个程序很单调这次更新
 我添加了能使我的服务器在浏览器上链接的这项功能其实这个功能;刚开始没有什么想法;故在网上查找了一些
