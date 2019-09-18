@@ -11,7 +11,8 @@
 class msg_thread
 {
 public:
-  msg_thread() {}
+  msg_thread() {
+  }
   ~msg_thread(){
        event_free(&r_event);
   }
@@ -20,9 +21,10 @@ public:
   struct event r_event;	//专门监听管道中的事件是否出现
   int read_fd;		//套接字的接收端
   int write_fd;	        //套接字的发送端
-
-  std::vector<void*>plugin_set;//存放插件集合;因为这里要避免使用plugin类所以使用了void*类型;
-  std::vector<file_data*>plugin_data_slots;//用来存放插件中的各种结构体
+  
+  
+  std::vector<void*>plugin_set;//存放插件派生类集合;因为这里派生类各不相同所以使用了void*类型;
+  std::vector<void*>plugin_file_data;//用来存放各种插件中的独有数据所以这里要用void*类型
 
   http_sponse_msg sponse_msg;
   http_quest_msg parsered_msg;//这里用指针是为了多次分配对象;

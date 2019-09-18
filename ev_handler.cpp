@@ -1,30 +1,30 @@
 #include<ev_handler.h>
 
-
+int ev_handler::current_thread=0;//静态成员变量必须在类内声明;类外初始化
 ev_handler::ev_handler(size_t thread_num,int sock_et):thread_num(thread_num),sock(sock_et){
 	m_base=NULL;
         m_event=NULL;
         th_pool=new ThreadPool(thread_num);//在堆上实例化对象
 }
 
-void ev_handler::sock_get(evutil_socket_t sock_et,short event,void* arg){
-        int current_thread=0;
+void ev_handler::sock_get(evutil_socket_t sock,short event,void* arg){      
         ev_handler* ev=(ev_handler*)arg;
         struct sockaddr_in temp_addr;
         int addrlen=sizeof(temp_addr);//用来存放连接上来的客户端地址
-        int new_fd = accept(sock_et,(struct sockaddr*) &temp_addr,(socklen_t*)&addrlen);
+        evutil_make_socket_nonblocking(sock);
+        int new_fd = accept(sock,(struct sockaddr*) &temp_addr,(socklen_t*)&addrlen);
         if(new_fd < 0){//连接客户端所返回的套接字
              std::cout<<"获取客户端返回套接字失败"<<std::endl;
              return;
         }
-        std::cout<<"连接成功"<<std::endl;  
-        evutil_make_socket_nonblocking(new_fd);//将套接字设置非阻塞模式
-        int tid = (current_thread + 1) % 2;  
+        std::cout<<"连接成功"<<std::endl;
+        std::cout<<"新返回的套接字为: "<<new_fd<<std::endl;
+        int tid = (ev_handler::current_thread + 1) % 2;  
         msg_thread *thread = ev->th_pool->m_Threads + tid;//把获得的线程信息转存到一个临时的线程信息类里面然后发送到指定线程
-        current_thread = tid;//更新值这里有问题
-        
+        ev_handler::current_thread = tid;//更新值这里有问题
+        std::cout<<ev_handler::current_thread<<std::endl;
+        thread->plugin_set=ev->plugin_set;
         thread->new_fd=new_fd;
-        thread->plugin_set=ev->plugin_set;//把刚才得到的插件信息发送到子线程中去每个子线程得到的都是相同的插件集合
         write(thread->write_fd," ",1);//通过写事件直接把套接字传入管道中去
             
         return ;        
@@ -65,9 +65,9 @@ int ev_handler::set_plugin(){
 			dlerror();
 			return -1;
 		}
-		plugin* plugin_t=setup_plugin();//执行调用其实这里是多态的思想左边是基类指针右边是延迟调用；延迟到plugin_static.cpp和其他插件中
-		plugin_t->setup_plugin=setup_plugin;//接下来是保存信息
-                plugin_t->remove_plugin=remove_plugin;
+		plugin* plugin_t=setup_plugin();//这里执行extern "C"第一个调用;这种方式基于C++的多态性;左边是基类指针右边是延迟调用；延迟到plugin_static.cpp和其他插件中这里很像是工厂方法模式
+
+                plugin_t->remove_plugin=remove_plugin;//接下来是保存之后会用到的信息
 		plugin_t->plugin_i=i;
                 plugin_t->handle=handle;
 		plugin_set.push_back(plugin_t);//plugin_set(动态链接库的集合)是个存放plugin对象的数组;每一种plugin_t对象都需要用动态链接库中的初始化函数去初始化。  这个plugin_set集合只是个临时存放链接库集合的地方;在回调函数中sock_get()中会被转存到msg_thread类中的plugin_set集合中  
@@ -84,7 +84,7 @@ ev_handler::~ev_handler(){
         for(int i=0;i<plugin_set.size();++i){
               plugin* plugin_m=static_cast<plugin*>(plugin_set[i]);
               plugin::Destroyplugin remove_plugin = plugin_m->remove_plugin;
-              remove_plugin(plugin_m);//在这里调用
+              remove_plugin(plugin_m);//在这里执行extern "C"中第二个函数调用
               dlclose(plugin_m->handle);//关闭
         }
 }

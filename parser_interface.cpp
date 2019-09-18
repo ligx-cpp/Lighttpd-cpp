@@ -30,7 +30,6 @@ int parser_interface::Url_cb(http_parser *parser, const char *buf, size_t len){
      mes->url = (char*)malloc(len + 1);
      memcpy(mes->url, buf, len);
      mes->url[len] = '\0';
-     std::cout<<mes->url<<std::endl; 
      return 0;
 }
 
@@ -39,7 +38,6 @@ int parser_interface::Header_field_cb(http_parser *parser, const char *buf, size
      mes->name = (char*)malloc(len + 1);
      memcpy(mes->name, buf, len);
      mes->name[len] = '\0';
-     std::cout<<mes->name<<std::endl;
      return 0;
 }
 
@@ -55,7 +53,6 @@ int parser_interface::Header_value_cb(http_parser *parser, const char *buf, size
 int parser_interface::On_headers_complete(http_parser *parser){
      http_quest_msg* mes=static_cast<http_quest_msg*>(parser->data);
      mes->method = (char *)http_method_str((http_method)parser->method);//所用的方法
-     std::cout<<mes->method<<std::endl;
      return 0;
 }
 

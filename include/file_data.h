@@ -1,22 +1,13 @@
 #ifndef FILE_DATA_H_
 #define FILE_DATA_H_
-#include<string>
-typedef enum
-{
-    INIT,
-    READ,
-    DONE,
-    NOT_EXIST,
-    NOT_ACCESS
-} static_state_t;
+
+enum class ST{GOOD,BAD};//这里用了C++11中的强枚举类型;限定作用域的枚举类型将名字空间污染降低
 class file_data
 {
 public:
-    file_data(): s_fd(-1) {}
-
-    int          s_fd;
-    char s_buf[10*1024];
-    static_state_t s_state;
+    file_data():fd(-1){}
+    int   fd;   
+    ST st;
 };
 
 #endif

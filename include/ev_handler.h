@@ -27,6 +27,7 @@ private:
 	struct event* m_event;//专门监听I/O事件(连接事件)
         plugin p_plugin;
         std::vector<void*>plugin_set;//存放插件集合
+        static int current_thread;
 };
 
 

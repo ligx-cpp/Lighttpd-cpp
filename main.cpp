@@ -5,7 +5,7 @@
 int main()
 {
     int port=4000;
-    std::string ip="192.168.56.101";
+    std::string ip="172.27.83.115";
     std::cout<<"请输入开放端口号：";
     //FileLogger fl("/log/message.log");
     //std::cin>>port;

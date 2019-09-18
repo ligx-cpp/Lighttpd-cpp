@@ -39,7 +39,6 @@ void ThreadPool::ThreadProcess(evutil_socket_t sock,short event,void* arg){
        //先从管道中读数据
        char buf[10*1024];//定义一个临时变量来存放从管道中读出来的套接字     
        read(me->read_fd,buf,sizeof(buf));//这边把套接字从管道中读出来
-       std::cout<<"新返回的套接字为: "<<me->new_fd<<std::endl;
        struct bufferevent *bev;//添加新事件
        bev=bufferevent_socket_new(me->w_base,me->new_fd,BEV_OPT_CLOSE_ON_FREE);//BEV_OPT_CLOSE_ON_FREE:释放bufferevent时关闭底层传输端口.这将关闭底层套接字,释放底层bufferevent等;提供给bufferevent_socket_new()的套接字务必是非阻塞模式(这在之前已经设置过了)如果想以后设置文件描述符,可以设置fd为-1.     
        bufferevent_setcb(bev,read_cb,NULL,event_cb,me);//给缓冲区设置回调(写回调因为用不到所以置为空)
@@ -74,22 +73,21 @@ void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
                 me->parsered_msg=(*quest_msg);//把http信息放在线程信息里面传入回调函数中          
                 //这里必须能获得me解析过后的消息并把它传给动态库去执行
                 //这里可以显示解析后的消息
-
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseStart(me,i);
                 }
-	        //bzero(buf,sizeof(buf));
                 for(size_t i=0;i<me->plugin_set.size();++i){
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->Write(me,i);//获得响应体
-                } 
-		std::string outbuf;
-		outbuf.reserve(10*1024); 
-                outbuf=me->sponse_msg.make_response();//先写好响应头
-                std::cout<<outbuf<<std::endl;
-                
-                outbuf+=(me->sponse_msg.http_body);
+
+                } 	
+
+	        
+                std::string outbuf;
+                outbuf.reserve(10*1024);
+                outbuf=me->sponse_msg.make_response();//先写好响应头            
+                outbuf+=(me->sponse_msg.body);//写响应体
 
                 bufferevent_write(bev,outbuf.c_str(),outbuf.size());
 
@@ -97,7 +95,7 @@ void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
                      plugin* plugin_m=static_cast<plugin*>(me->plugin_set[i]);
                      plugin_m->ResponseEnd(me,i);
                 }
-                 
+                outbuf.erase();
                 delete quest_msg;
 		me->sponse_msg.reset_response();
                 return ;
