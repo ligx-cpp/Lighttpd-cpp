@@ -15,6 +15,7 @@
 #include <event2/buffer.h>
 #include <msg_thread.h>
 #include "plugin.h"
+#include "handle_state.h"
 class ThreadPool {
 public:
     ThreadPool(size_t thread_num);
