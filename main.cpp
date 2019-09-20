@@ -1,7 +1,10 @@
+#ifndef MAIN_H_
+#define MAIN_H_
 #include <iostream>
 #include <string>
-#include <network.h>
+#include "network.h"
 #include "ev_handler.h"
+
 int main()
 {
     int port=4000;
@@ -9,8 +12,8 @@ int main()
     std::cout<<"请输入开放端口号：";
     //FileLogger fl("/log/message.log");
     //std::cin>>port;
-    netaddr n_addr;
-    int sock=n_addr.net_init(ip,port);
+    netaddr* n_addr=netaddr::getInstance();//这里用了一个单例设计模式
+    int sock=n_addr->net_init(ip,port);
     if(sock<0){
            std::cout<< "套接字创建失败！"<<std::endl;
            return -1;
@@ -23,3 +26,4 @@ int main()
     std::cout<<"服务器程序退出！"<<std::endl;
     return 0;
 }
+#endif

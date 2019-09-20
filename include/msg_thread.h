@@ -21,7 +21,7 @@ public:
   struct event r_event;	//专门监听管道中的事件是否出现
   int read_fd;		//套接字的接收端
   int write_fd;	        //套接字的发送端
-  
+  std::string outbuf;//发送数据用的字符串
   
   std::vector<void*>plugin_set;//存放插件派生类集合;因为这里派生类各不相同所以使用了void*类型;
   std::vector<void*>plugin_file_data;//用来存放各种插件中的独有数据所以这里要用void*类型

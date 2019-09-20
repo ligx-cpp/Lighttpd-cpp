@@ -1,20 +1,14 @@
 #ifndef HANDLE_STATE_H_
 #define HANDLE_STATE_H_
-#include"state.h"
+#include"state_base.h"
+#include"msg_thread.h"
 class Response{
 public:
-        Response(){m_state = new init_state(this);}
+        Response();
 
-        void request(){
-               if(NULL != m_state)
-               {
-                    m_state->handle();
-               }
-        }
+        void request(msg_thread* me);
 
-        void change_state(State* state){
-               m_state = state;
-        }
+        void change_state(State* state);
 private:
         State *m_state;
 };

@@ -58,8 +58,6 @@ void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
 {
 	        msg_thread *me = (msg_thread*) arg;
                 //解析请求部分
-                Response   l1;             
-                tl.Request();
                 char buffer[10*1024];//这是10M
 	        bzero(buffer,sizeof(buffer));
 	        bufferevent_read(bev,buffer,sizeof(buffer));
@@ -71,18 +69,13 @@ void ThreadPool::read_cb(struct bufferevent *bev, void* arg)
                 me->parsered_msg=(*quest_msg);//把http信息放在线程信息里面传入回调函数中          
                 //这里必须能获得me解析过后的消息并把它传给动态库去执行
                 //这里可以显示解析后的消息
-                tl.Request();
-                tl.Request();
-                 	
-                std::string outbuf;
-                outbuf.reserve(10*1024);
-                outbuf=me->sponse_msg.make_response();//先写好响应头            
-                outbuf+=(me->sponse_msg.body);//写响应体
-
-                bufferevent_write(bev,outbuf.c_str(),outbuf.size());
-                tl.Request();
+                Response   m_sp;//控制面板负责操作状态机的转换     
+                m_sp.request(me);//初始化状态
+                m_sp.request(me);//准备写状态
+                m_sp.request(me);//写状态
+                bufferevent_write(bev,me->outbuf.c_str(),me->outbuf.size());
+                m_sp.request(me);//结束状态
                 
-                outbuf.erase();
                 delete quest_msg;
 		me->sponse_msg.reset_response();
                 return ;
